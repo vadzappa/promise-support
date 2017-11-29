@@ -40,6 +40,25 @@ describe('promises-support', () => {
 				done();
 			});
 		});
+
+		it('should handle sync error', (done) => {
+			const myFn = (arg1, arg2, arg3, callback) => {
+				if (arg1 === arg2) {
+					throw new Error('sync error');
+				}
+				callback(null, arg1, arg2, arg3);
+			};
+
+			let wrappedFn = supportsPromise(myFn);
+
+			wrappedFn(2, 2, 3, (err, first, second, third) => {
+				assert.ok(err);
+				assert.ok(!first, 'should not pass args');
+				assert.ok(!second, 'should not pass args');
+				assert.ok(!third, 'should not pass args');
+				done();
+			});
+		});
 	});
 
 	describe('promises', () => {
@@ -124,6 +143,29 @@ describe('promises-support', () => {
 				})
 				.catch(err => {
 					assert.equal(err, 'error');
+					done();
+				});
+		});
+
+		it('should wrap sync error from function', (done) => {
+			const myFn = (arg1, arg2, arg3, callback) => {
+				if (arg1 === arg2) {
+					throw new Error('sync error');
+				}
+				callback(null, arg1, arg2, arg3);
+			};
+
+			let wrappedFn = supportsPromise(myFn);
+
+			let promise = wrappedFn(2, 2, 3);
+			promise
+				.then(results => {
+					assert.ifError(results, 'should not resolve');
+					assert.ok(false, 'should not resolve');
+					done();
+				})
+				.catch(err => {
+					assert.ok(err, 'should send error');
 					done();
 				});
 		});

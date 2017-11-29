@@ -31,7 +31,12 @@ module.exports = function(fn, context) {
 			};
 
 			args.push(callback_);
-			fn.apply(context || null, args);
+			try {
+				fn.apply(context || null, args);
+			} catch (e) {
+				reject(e);
+				return callback(e);
+			}
 		});
 	};
 };
