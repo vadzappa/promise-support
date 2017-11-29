@@ -1,5 +1,6 @@
 'use strict';
 const supportsPromise = require('../'),
+	sinon = require('sinon'),
 	assert = require('assert');
 
 describe('promises-support', () => {
@@ -168,6 +169,43 @@ describe('promises-support', () => {
 					assert.ok(err, 'should send error');
 					done();
 				});
+		});
+	});
+
+
+	describe('promise#retry', () => {
+		it('should retry needed amount of times and reject', (done) => {
+			const retry = supportsPromise.retry;
+
+			let myPromise = sinon.stub().rejects('err');
+
+			retry(myPromise, {interval: 0, times: 5}).then(() => {
+				assert.ok(false, 'should not  resolve');
+				done();
+			}).catch(e => {
+				assert.ok(e, 'should reject if amount of times exceeded');
+				assert.equal(myPromise.callCount, 5, 'should not call more than `times` specified');
+				done();
+			});
+		});
+
+		it('should retry needed amount of times and resolve', (done) => {
+			const retry = supportsPromise.retry;
+
+			let myPromise = sinon.stub()
+				.onCall(0).rejects('err')
+				.onCall(1).rejects('err')
+				.onCall(2).rejects('err')
+				.onCall(3).resolves(1);
+
+			retry(myPromise, {interval: 0, times: 5}).then((result) => {
+				assert.equal(result, 1, 'should not  resolve');
+				assert.equal(myPromise.callCount, 4);
+				done();
+			}).catch(e => {
+				assert.ifError(e, 'should not reject if promise resolved');
+				done();
+			});
 		});
 	});
 });

@@ -1,16 +1,16 @@
-module.exports = function(fn, context) {
-	return function() {
+module.exports = function (fn, context) {
+	return function () {
 		var args = [].slice.apply(arguments),
 			callback = args.pop();
 
 		if (typeof callback !== 'function') {
 			args.push(callback);
-			callback = function() {
+			callback = function () {
 			};
 		}
 
 		return new Promise((resolve, reject) => {
-			var callback_ = function() {
+			var callback_ = function () {
 				var cbArgs = [].slice.apply(arguments),
 					error = cbArgs.shift();
 
@@ -39,4 +39,29 @@ module.exports = function(fn, context) {
 			}
 		});
 	};
+};
+
+module.exports.retry = (promise, retryConfig) => {
+	retryConfig = retryConfig || {};
+	const interval = retryConfig.interval || 0,
+		times = retryConfig.times || 5,
+		attempt = (count) => {
+			const retryIn = count === times - 1 ? 0 : interval;
+
+			return new Promise((resolve, reject) => {
+				setTimeout(() => {
+					promise()
+						.catch(e => {
+							if (count > 0) {
+								return attempt(count - 1);
+							}
+							throw e;
+						})
+						.then(resolve)
+						.catch(reject);
+				}, retryIn);
+			});
+		};
+
+	return attempt(times - 1);
 };
