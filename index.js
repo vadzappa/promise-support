@@ -1,9 +1,11 @@
 module.exports = function (fn, context) {
 	return function () {
 		var args = [].slice.apply(arguments),
-			callback = args.pop();
+			callback = args.pop(),
+			rejectOnError = false;
 
 		if (typeof callback !== 'function') {
+			rejectOnError = true;
 			args.push(callback);
 			callback = function () {
 			};
@@ -15,7 +17,7 @@ module.exports = function (fn, context) {
 					error = cbArgs.shift();
 
 				if (error) {
-					reject(error);
+					rejectOnError && reject(error);
 					return callback(error);
 				}
 
@@ -34,7 +36,7 @@ module.exports = function (fn, context) {
 			try {
 				fn.apply(context || null, args);
 			} catch (e) {
-				reject(e);
+				rejectOnError && reject(e);
 				return callback(e);
 			}
 		});

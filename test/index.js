@@ -170,8 +170,29 @@ describe('promises-support', () => {
 					done();
 				});
 		});
-	});
 
+		it('should not reject is cb provided (to avoid Unhandled rejection)', (done) => {
+			const myFn = (arg1, arg2, arg3, callback) => {
+				callback(new Error('wooooo'));
+			};
+
+			let wrappedFn = supportsPromise(myFn);
+
+			let promise = wrappedFn(2, 2, 3, (err) => {
+				assert.ok(err, 'should send error');
+				done();
+			});
+			promise
+				.then(results => {
+					assert.ifError(results, 'should not resolve');
+					assert.ok(false, 'should not resolve');
+					done();
+				})
+				.catch(err => {
+					assert.ifError(err, 'should not reject if callback provided');
+				});
+		});
+	});
 
 	describe('promise#retry', () => {
 		it('should retry needed amount of times and reject', (done) => {
