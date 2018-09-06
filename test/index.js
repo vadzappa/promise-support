@@ -192,6 +192,28 @@ describe('promises-support', () => {
 					assert.ifError(err, 'should not reject if callback provided');
 				});
 		});
+
+		it('should properly wrap rest parameters with no actual args', (done) => {
+			const funcWrapper = (fn) => supportsPromise((...rest) => {
+				const copy = [...rest];
+
+				copy.unshift('test-arg');
+
+				fn.apply(null, copy);
+			});
+			const myFn = funcWrapper((str, cb) => {
+				if (!str) {
+					return cb('error');
+				}
+
+				return cb(null, str);
+			});
+
+			myFn().then((res) => {
+				assert.equal(res, 'test-arg');
+				done();
+			});
+		});
 	});
 
 	describe('promise#retry', () => {

@@ -6,7 +6,9 @@ module.exports = function (fn, context) {
 
 		if (typeof callback !== 'function') {
 			rejectOnError = true;
-			args.push(callback);
+			if (arguments.length > 0) {
+				args.push(callback);
+			}
 			callback = function () {
 			};
 		}
